@@ -5,8 +5,9 @@ import re
 
 import chromadb
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import APIKeyHeader
 from fastapi.responses import StreamingResponse
 from google import genai
 from google.genai import types
@@ -58,7 +59,10 @@ app.add_middleware(
 )
 
 
-def require_key(x_api_key: str | None = Header(default=None)):
+api_key_scheme = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+def require_key(x_api_key: str | None = Depends(api_key_scheme)):
     if APP_API_KEY and x_api_key != APP_API_KEY:
         raise HTTPException(status_code=401, detail="Invalid or missing X-API-Key")
 
